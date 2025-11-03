@@ -101,6 +101,7 @@
   margin-right: 12px;
   min-width: 90px;
   font-size: 13px;
+  border: none;
 }
 
 .timestamp-item .value {
