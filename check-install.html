@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>扩展安装检查器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #1e293b;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+    .status-box {
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .status-loading {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+    }
+    .status-success {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      color: #065f46;
+    }
+    .status-error {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin: 10px 0;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #e5e7eb;
+    }
+    .check-item.success {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+    }
+    .check-item.error {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+    .check-item .icon {
+      font-size: 24px;
+      margin-right: 15px;
+      width: 30px;
+      text-align: center;
+    }
+    .check-item .text {
+      flex: 1;
+    }
+    .check-item .label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .check-item .detail {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    button {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 10px 10px 10px 0;
+      transition: all 0.3s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .code-block {
+      background: #1f2937;
+      color: #f3f4f6;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .steps {
+      margin: 20px 0;
+    }
+    .step {
+      display: flex;
+      margin: 15px 0;
+    }
+    .step-number {
+      background: #3b82f6;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+      padding-top: 4px;
+    }
+    .highlight {
+      background: #fef3c7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    .test-area {
+      border: 2px dashed #3b82f6;
+      border-radius: 12px;
+      padding: 30px;
+      margin: 20px 0;
+      text-align: center;
+      background: #f0f9ff;
+    }
+    .test-timestamp {
+      font-size: 32px;
+      font-weight: bold;
+      color: #1e293b;
+      margin: 20px 0;
+      cursor: pointer;
+      user-select: text;
+      font-family: 'Monaco', monospace;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      display: inline-block;
+      border: 1px solid #e2e8f0;
+    }
+    .test-timestamp:hover {
+      background: #dbeafe;
+      border-color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 扩展安装检查器</h1>
+    <p class="subtitle">自动检测时间戳识别扩展是否正确安装和加载</p>
+
+    <div id="status" class="status-box status-loading">
+      ⏳ 正在检查扩展状态...
+    </div>
+
+    <div id="checks">
+      <!-- 检查项会动态添加 -->
+    </div>
+
+    <div id="actions" style="margin: 30px 0;">
+      <button onclick="runCheck()">🔄 重新检查</button>
+      <button onclick="showInstallGuide()">📖 查看安装指南</button>
+      <button onclick="copyTempScript()">📋 复制临时脚本</button>
+    </div>
+
+    <div class="test-area">
+      <h3 style="color: #1e293b; margin-bottom: 15px;">✨ 测试区域</h3>
+      <p style="margin-bottom: 15px; color: #666;">双击下面的时间戳测试功能</p>
+      <div class="test-timestamp" title="双击我测试">1758511800732</div>
+      <div class="test-timestamp" title="双击我测试">1760514008027</div>
+      <p style="margin-top: 15px; font-size: 14px; color: #999;">
+        如果扩展正常工作，双击应该弹出转换结果
+      </p>
+    </div>
+
+    <div id="install-guide" style="display: none;">
+      <h2 style="color: #1e293b; margin: 30px 0 20px;">📖 安装指南</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <strong>打开扩展管理页面</strong><br>
+            在浏览器地址栏输入 <span class="highlight">chrome://extensions/</span> 或 <span class="highlight">edge://extensions/</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <strong>开启开发者模式</strong><br>
+            点击页面右上角的"开发者模式"开关
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <strong>加载扩展</strong><br>
+            点击"加载已解压的扩展程序"，选择文件夹：<br>
+            <span class="highlight">/Users/lizimeng16/temp/time-stamp</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <strong>刷新页面</strong><br>
+            按 <span class="highlight">F5</span> 或 <span class="highlight">Cmd+R</span> 刷新当前页面
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <strong>测试功能</strong><br>
+            双击上方测试区域的时间戳，应该看到转换结果
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="temp-script-container" style="display: none; margin-top: 30px;">
+      <h3 style="color: #ef4444; margin-bottom: 15px;">⚠️ 临时解决方案</h3>
+      <p style="margin-bottom: 15px; color: #666;">
+        如果扩展无法加载，复制下面的代码到浏览器控制台（F12）运行：
+      </p>
+      <div class="code-block" id="temp-script"></div>
+      <button onclick="copyTempScript()">📋 复制代码</button>
+    </div>
+  </div>
+
+  <script>
+    const checks = [];
+    
+    function addCheck(label, detail, success) {
+      checks.push({ label, detail, success });
+    }
+
+    function runCheck() {
+      checks.length = 0;
+      const checksContainer = document.getElementById('checks');
+      checksContainer.innerHTML = '';
+      
+      // 检查1: 提示框元素
+      const tooltip = document.getElementById('timestamp-tooltip');
+      addCheck(
+        '扩展注入元素',
+        tooltip ? '找到了扩展创建的提示框元素' : '未找到提示框元素（扩展可能未加载）',
+        !!tooltip
+      );
+
+      // 检查2: 控制台消息
+      addCheck(
+        '控制台日志',
+        '查看浏览器控制台（F12）是否有 "时间戳识别工具已加载" 消息',
+        null
+      );
+
+      // 检查3: content.js 文件
+      fetch('content.js')
+        .then(() => {
+          addCheck('扩展文件', 'content.js 文件存在', true);
+        })
+        .catch(() => {
+          addCheck('扩展文件', 'content.js 文件不存在或无法访问', false);
+        })
+        .finally(() => {
+          renderChecks();
+        });
+
+      // 检查4: 事件监听器
+      setTimeout(() => {
+        const hasExtension = !!document.getElementById('timestamp-tooltip');
+        addCheck(
+          '延迟检查',
+          hasExtension ? '1秒后仍能找到扩展元素' : '扩展可能未正确初始化',
+          hasExtension
+        );
+        renderChecks();
+        updateStatus();
+      }, 1000);
+
+      renderChecks();
+    }
+
+    function renderChecks() {
+      const container = document.getElementById('checks');
+      container.innerHTML = checks.map(check => `
+        <div class="check-item ${check.success === true ? 'success' : check.success === false ? 'error' : ''}">
+          <div class="icon">
+            ${check.success === true ? '✅' : check.success === false ? '❌' : '⚪'}
+          </div>
+          <div class="text">
+            <span class="label">${check.label}</span>
+            <span class="detail">${check.detail}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateStatus() {
+      const statusBox = document.getElementById('status');
+      const hasExtension = checks.some(c => c.label === '扩展注入元素' && c.success);
+      
+      if (hasExtension) {
+        statusBox.className = 'status-box status-success';
+        statusBox.innerHTML = '✅ 扩展已成功加载！可以双击时间戳测试功能';
+      } else {
+        statusBox.className = 'status-box status-error';
+        statusBox.innerHTML = '❌ 扩展未加载！请查看下方安装指南或使用临时方案';
+        document.getElementById('install-guide').style.display = 'block';
+        document.getElementById('temp-script-container').style.display = 'block';
+        loadTempScript();
+      }
+    }
+
+    function showInstallGuide() {
+      const guide = document.getElementById('install-guide');
+      guide.style.display = guide.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function loadTempScript() {
+      const script = `(function() {
+  console.log('🕐 临时时间戳工具已加载');
+  
+  let tooltip = document.createElement('div');
+  tooltip.style.cssText = 'position:absolute;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:white;padding:20px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.3);z-index:999999;font-size:14px;display:none;min-width:300px;';
+  document.body.appendChild(tooltip);
+  
+  document.addEventListener('dblclick', function(e) {
+    let element = e.target, attempts = 0, timestamp = null;
+    while (element && attempts < 5) {
+      const match = (element.textContent || '').match(/\\b(\\d{13})\\b/);
+      if (match) { timestamp = match[1]; break; }
+      element = element.parentElement;
+      attempts++;
+    }
+    if (!timestamp) { tooltip.style.display = 'none'; return; }
+    
+    const date = new Date(Number(timestamp));
+    const formatted = date.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    
+    tooltip.innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">时间戳: ' + timestamp + '</div><div style="background:rgba(255,255,255,0.2);padding:10px;border-radius:6px;">' + formatted + '</div><div style="margin-top:10px;font-size:12px;opacity:0.8;">ISO: ' + date.toISOString() + '</div>';
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.pageX + 10) + 'px';
+    tooltip.style.top = (e.pageY + 10) + 'px';
+    console.log('✓ 识别:', timestamp, '→', formatted);
+  }, true);
+  
+  document.addEventListener('click', function(e) {
+    if (e.target !== tooltip && !tooltip.contains(e.target)) {
+      tooltip.style.display = 'none';
+    }
+  });
+})();`;
+      
+      document.getElementById('temp-script').textContent = script;
+    }
+
+    function copyTempScript() {
+      loadTempScript();
+      const script = document.getElementById('temp-script').textContent;
+      navigator.clipboard.writeText(script).then(() => {
+        alert('✅ 临时脚本已复制到剪贴板！\n\n请：\n1. 按 F12 打开开发者工具\n2. 切换到 Console 标签\n3. 粘贴代码并按回车\n4. 双击时间戳测试');
+      });
+    }
+
+    // 页面加载时自动检查
+    window.addEventListener('load', () => {
+      setTimeout(runCheck, 500);
+    });
+  </script>
+</body>
+</html>
