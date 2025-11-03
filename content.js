@@ -117,15 +117,28 @@
     let text = element.textContent || element.innerText || '';
     text = text.trim();
     
+    // 如果文本太长，可能不是单独的时间戳
+    if (text.length > 20) {
+      return null;
+    }
+    
+    // 清理文本，只保留数字
+    const cleanText = text.replace(/\D/g, '');
+    
+    // 必须是恰好13位数字
+    if (cleanText.length !== 13) {
+      return null;
+    }
+    
     // 尝试匹配13位数字（毫秒时间戳）
     const timestampMatch = text.match(/\b(\d{13})\b/);
     if (timestampMatch) {
       return timestampMatch[1];
     }
     
-    // 如果整个文本就是数字
-    if (/^\d+$/.test(text) && text.length === 13) {
-      return text;
+    // 如果整个文本就是13位数字
+    if (/^\d{13}$/.test(cleanText)) {
+      return cleanText;
     }
     
     return null;
@@ -167,25 +180,35 @@
     }
     
     let selectedText = getSelectedText();
+    let fromSelection = false;
     
-    // 如果没有选中文本，或选中的文本不是有效时间戳，尝试从点击的元素获取
-    if (!selectedText || !/^\d{13}$/.test(selectedText.trim())) {
+    // 首先检查选中的文本是否是有效的13位时间戳
+    if (selectedText) {
+      const cleanSelected = selectedText.trim().replace(/\D/g, '');
+      if (/^\d{13}$/.test(cleanSelected)) {
+        selectedText = cleanSelected;
+        fromSelection = true;
+      } else {
+        selectedText = null;
+      }
+    }
+    
+    // 如果没有从选中文本获取到有效时间戳，尝试从点击的元素获取
+    if (!selectedText) {
       const clickedElement = event.target;
       
       // 使用递归查找
       selectedText = findTimestampInHierarchy(clickedElement);
     }
     
+    // 如果仍然没有找到，直接返回，不显示提示框
     if (!selectedText) {
       hideTooltip();
       return;
     }
     
-    // 清理文本，只保留数字
-    selectedText = selectedText.replace(/\D/g, '');
-    
-    // 确保是13位数字
-    if (selectedText.length !== 13) {
+    // 再次确认是13位数字
+    if (selectedText.length !== 13 || !/^\d{13}$/.test(selectedText)) {
       hideTooltip();
       return;
     }
@@ -199,7 +222,7 @@
       return;
     }
     
-    // 检查是否为有效的时间戳
+    // 检查是否为有效的时间戳（在合理的时间范围内）
     if (!isValidTimestamp(num)) {
       hideTooltip();
       return;
@@ -208,6 +231,7 @@
     // 格式化时间戳
     const formatted = formatTimestamp(num);
     
+    // 如果格式化失败，不显示
     if (!formatted) {
       hideTooltip();
       return;
