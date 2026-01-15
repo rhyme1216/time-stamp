@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间戳测试页面</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 40px;
+      background: #f8fafc;
+    }
+    .test-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #1e293b;
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    .dbsv5-table-cell {
+      background: #fafafa;
+    }
+    .dbsv5-table-cell-ellipsis {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>🕐 时间戳识别测试页面</h1>
+  <p>安装扩展后，双击下面的时间戳数字进行测试</p>
+
+  <div class="test-container">
+    <h2>测试1：普通文本中的时间戳</h2>
+    <p>这是一个时间戳：1760514008027</p>
+    <p>这是另一个时间戳：1699000000000</p>
+  </div>
+
+  <div class="test-container">
+    <h2>测试2：表格中的时间戳（你的场景）</h2>
+    <table>
+      <tr>
+        <td class="dbsv5-table-cell dbsv5-table-cell-ellipsis">
+          <div style="white-space: pre;">1758511800732</div>
+        </td>
+        <td>这是你的实际元素结构</td>
+      </tr>
+      <tr>
+        <td class="dbsv5-table-cell dbsv5-table-cell-ellipsis">
+          <div style="white-space: pre;">1760514008027</div>
+        </td>
+        <td>另一个测试时间戳</td>
+      </tr>
+      <tr>
+        <td class="dbsv5-table-cell dbsv5-table-cell-ellipsis">
+          <div style="white-space: pre;">1699000000000</div>
+        </td>
+        <td>第三个测试时间戳</td>
+      </tr>
+      <tr>
+        <td>普通单元格中的时间戳：1758511800732</td>
+        <td>没有特殊样式的时间戳</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="test-container">
+    <h2>测试3：各种元素包裹的时间戳</h2>
+    <p>span 标签：<span>1760514008027</span></p>
+    <p>div 标签：<div style="display: inline-block;">1760514008027</div></p>
+    <p>code 标签：<code>1760514008027</code></p>
+    <p>pre 标签：<pre style="display: inline;">1760514008027</pre></p>
+  </div>
+
+  <div class="test-container">
+    <h2>测试4：用户选择禁用的元素</h2>
+    <p>input: <input type="text" value="1760514008027" readonly></p>
+    <p>textarea: <textarea readonly>1760514008027</textarea></p>
+  </div>
+
+  <div class="test-container">
+    <h2>📝 使用说明</h2>
+    <ol>
+      <li>确保已在 Chrome/Edge 浏览器中安装了时间戳识别扩展</li>
+      <li>双击上面任意时间戳数字</li>
+      <li>应该会弹出转换结果的悬浮窗</li>
+      <li>如果没有反应，请检查：
+        <ul>
+          <li>扩展是否已正确加载（在扩展管理页面查看）</li>
+          <li>是否完整选中了数字（双击是否选中了完整的13位数字）</li>
+          <li>打开开发者工具（F12）查看控制台是否有错误</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+
+  <div class="test-container">
+    <h2>🔍 当前时间戳</h2>
+    <p>当前时间的毫秒时间戳：<span id="current-timestamp"></span></p>
+  </div>
+
+  <script>
+    // 显示当前时间戳
+    function updateTimestamp() {
+      document.getElementById('current-timestamp').textContent = Date.now();
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+  </script>
+</body>
+</html>
